@@ -24,11 +24,11 @@ services:
         condition: service_started
     env_file: config/backend/mock-smssender.env
 
-  api-service-teams-sender:
-    environment:
-      SPRING_PROFILES_ACTIVE: mock
-      GRAPH_BASE_URL: http://wiremock:8080
-    env_file: config/backend/mock-teams-sender.env
+#  api-service-teams-sender:
+#    environment:
+#      SPRING_PROFILES_ACTIVE: mock
+#      GRAPH_BASE_URL: http://wiremock:8080
+#    env_file: config/backend/mock-teams-sender.env
 
   csv-filereader:
     environment:

@@ -23,7 +23,7 @@ Yggdrasil deploys all microservices and databases for the crisis communication s
 
 ### Production
 ```bash
-git clone git@github.com:Public-Service-as-a-Service/Yggdrasil.git
+git clone git@github.com:Sundsvallskommun/Yggdrasil.git
 cd Yggdrasil
 ```
 
