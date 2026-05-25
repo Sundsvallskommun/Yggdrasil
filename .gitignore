@@ -6,3 +6,4 @@ config/backend/.env-smssender
 config/backend/.env-teams-sender
 config/backend/.env-webappusers
 config/secret.env
+docker-compose.override.yml

@@ -119,8 +119,8 @@ services:
         condition: service_healthy
 #      api-service-teams-sender:
 #        condition: service_started
-    environment:
-      DATABASE_URL: mysql://nidhogg:${DB_PASSWORD}@db:3306/nidhogg
+    env_file:
+      - ${SECRETS_FILE:-config/secret.env}
     mem_limit: 1g
     cpus: 2
     pids_limit: 256
