@@ -16,6 +16,8 @@ services:
       - ./config/db/db-init.sql:/docker-entrypoint-initdb.d/01-init.sql:ro
       - db_data:/var/lib/mysql
     restart: unless-stopped
+    ports:
+      - "127.0.0.1:3306:3306"
 
   api-service-notifier:
     image: ghcr.io/sundsvallskommun/api-service-notifier:1.0
@@ -88,6 +90,8 @@ services:
       - "com.centurylinklabs.watchtower.enable=true"
     depends_on:
       db:
+        condition: service_healthy
+      api-service-notifier:
         condition: service_healthy
     environment:
       SPRING_CONFIG_ADDITIONAL_LOCATION: file:/app/config/application.yml
