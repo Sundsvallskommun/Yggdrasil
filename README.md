@@ -115,8 +115,8 @@ Optional extras:
 - `docker volume rm yggdrasil_db_data_mock` — also drop the mock database volume (not declared in `docker-compose.yml`, so `-v` won't touch it).
 
 If you want belt-and-suspenders verification afterward:
-- `docker-compose ps`     # expect everything healthy/running
-- `docker inspect --format '{{.Name}}: restarts={{.RestartCount}}' $(docker-compose ps -q)` # Verify that all restarts = 0
+- `docker compose ps` — expect everything healthy/running
+- `docker inspect --format '{{.Name}}: restarts={{.RestartCount}}' $(docker compose ps -q)` — Verify that all restarts = 0
 
 ## Logs & Troubleshooting
 ```bash
