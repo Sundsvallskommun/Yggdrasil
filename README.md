@@ -98,6 +98,26 @@ bash config/wiremock/tests/run_all.sh e2e
 
 See [config/wiremock/tests/README.md](config/wiremock/tests/README.md) for more details.
 
+## Reset the stack
+
+To start over from a completely clean state — empty databases, fresh CSV directories — as if running `docker compose up` for the first time:
+
+```bash
+docker compose down -v
+docker compose up -d
+```
+
+`down -v` removes all containers, project networks, and the named volumes declared in `docker-compose.yml` (`db_data`, `csv_incoming`, `csv_processed`, `csv_failed`, `csv_temp`). Images stay cached and bind-mounted files under `config/` are untouched.
+
+Optional extras:
+- `docker compose down -v --remove-orphans` — also clean up containers left behind by older compose variants.
+- `docker compose pull` before `up -d` — re-pull image tags in case upstream has been updated in place.
+- `docker volume rm yggdrasil_db_data_mock` — also drop the mock database volume (not declared in `docker-compose.yml`, so `-v` won't touch it).
+
+If you want belt-and-suspenders verification afterward:
+- `docker-compose ps`     # expect everything healthy/running
+- `docker inspect --format '{{.Name}}: restarts={{.RestartCount}}' $(docker-compose ps -q)` # Verify that all restarts = 0
+
 ## Logs & Troubleshooting
 ```bash
 # Tail all logs
