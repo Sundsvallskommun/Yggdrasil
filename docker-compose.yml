@@ -16,14 +16,14 @@ services:
     restart: unless-stopped
 
   api-service-notifier:
-    image: ghcr.io/public-service-as-a-service/api-service-notifier:latest
+    image: ghcr.io/sundsvallskommun/api-service-notifier:1.0
     depends_on:
       db:
         condition: service_healthy
       api-service-sms-sender:
         condition: service_started
-      api-service-teams-sender:
-        condition: service_started
+#      api-service-teams-sender:
+#        condition: service_started
     environment:
       SPRING_CONFIG_ADDITIONAL_LOCATION: file:/app/config/application.yml
     env_file: config/backend/.env-notifier
@@ -38,7 +38,7 @@ services:
     restart: unless-stopped
 
   api-service-webappusers:
-    image: ghcr.io/public-service-as-a-service/api-service-webappusers:latest
+    image: ghcr.io/sundsvallskommun/api-service-webapp-users:1.0
     depends_on:
       db:
         condition: service_healthy
@@ -56,7 +56,7 @@ services:
     restart: unless-stopped
 
   api-service-sms-sender:
-    image: ghcr.io/sundsvallskommun/api-service-sms-sender:latest
+    image: ghcr.io/sundsvallskommun/api-service-sms-sender:2.0
     environment:
       SPRING_CONFIG_ADDITIONAL_LOCATION: file:/app/config/application.yml
     env_file: config/backend/.env-smssender
@@ -64,43 +64,80 @@ services:
       - ./config/backend/application-smssender.yml:/app/config/application.yml
     restart: unless-stopped
 
-  api-service-teams-sender:
-    image: ghcr.io/public-service-as-a-service/api-service-teams-sender:latest
-    environment:
-      SPRING_CONFIG_ADDITIONAL_LOCATION: file:/app/config/application.yml
-    env_file: config/backend/.env-teams-sender
-    volumes:
-      - ./config/backend/application-teams-sender.yml:/app/config/application.yml
-    restart: unless-stopped
+# TODO: Reenable if/when teams-sender is functional
+#  api-service-teams-sender:
+#    image: ghcr.io/sundsvallskommun/api-service-teams-sender:latest
+#    environment:
+#      SPRING_CONFIG_ADDITIONAL_LOCATION: file:/app/config/application.yml
+#    env_file: config/backend/.env-teams-sender
+#    volumes:
+#      - ./config/backend/application-teams-sender.yml:/app/config/application.yml
+#    restart: unless-stopped
 
   csv-filereader:
-    image: ghcr.io/public-service-as-a-service/csv-filereader:latest
+    image: ghcr.io/sundsvallskommun/api-service-csv-filereader:1.0
     depends_on:
       db:
+        condition: service_healthy
+      api-service-notifier:
         condition: service_healthy
     environment:
       SPRING_CONFIG_ADDITIONAL_LOCATION: file:/app/config/application.yml
     env_file: config/backend/.env-csv-filereader
     volumes:
       - ./config/backend/application-csv-filereader.yml:/app/config/application.yml
-      - /data/incoming:/data/incoming
-      - /data/processed:/data/processed
-      - /data/failed:/data/failed
-      - /data/temp:/data/temp
+      - csv_incoming:/data/incoming
+      - csv_processed:/data/processed
+      - csv_failed:/data/failed
+      - csv_temp:/data/temp
     restart: unless-stopped
 
   web-app-nidhogg:
-    image: ghcr.io/public-service-as-a-service/web-app-nidhogg:latest
+    image: ghcr.io/sundsvallskommun/web-app-nidhogg:0.2.0
+    # Workaround: image is published amd64-only; emulated on arm64 hosts.
+    platform: linux/amd64
     depends_on:
+      db:
+        condition: service_healthy
       api-service-notifier:
         condition: service_healthy
       api-service-webappusers:
         condition: service_healthy
-      api-service-teams-sender:
-        condition: service_started
-    ports:
-      - "3000:3000"
+#      api-service-teams-sender:
+#        condition: service_started
+    env_file:
+      - ${SECRETS_FILE:-config/secret.env}
+    mem_limit: 1g
+    cpus: 2
+    pids_limit: 256
+    read_only: true
+    tmpfs:
+      - /tmp
+    security_opt:
+      - no-new-privileges:true
+    restart: unless-stopped
+
+  nginx:
+    image: nginx:alpine
+    depends_on:
+      - web-app-nidhogg
+    # Traffic routed through public-proxy with TLS (notifyer.sundsvall.se)
+    volumes:
+      - ./config/nginx/nginx.conf:/etc/nginx/conf.d/default.conf:ro
+    mem_limit: 128m
+    cpus: 1
+    read_only: true
+    tmpfs:
+      - /tmp
+      - /var/cache/nginx
+      - /var/run
+    security_opt:
+      - no-new-privileges:true
     restart: unless-stopped
 
 volumes:
   db_data:
+  csv_incoming:
+  csv_processed:
+  csv_failed:
+  csv_temp:
