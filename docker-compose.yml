@@ -144,3 +144,5 @@ volumes:
 networks:
   default:
     name: yggdrasil
+    # Skip ownership, just attach to the network
+    external: true
