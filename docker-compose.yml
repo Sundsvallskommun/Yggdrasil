@@ -141,3 +141,6 @@ volumes:
   csv_processed:
   csv_failed:
   csv_temp:
+networks:
+  default:
+    name: yggdrasil
