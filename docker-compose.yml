@@ -86,10 +86,10 @@ services:
     env_file: config/backend/.env-csv-filereader
     volumes:
       - ./config/backend/application-csv-filereader.yml:/app/config/application.yml
-      - csv_incoming:/data/incoming
-      - csv_processed:/data/processed
-      - csv_failed:/data/failed
-      - csv_temp:/data/temp
+      - /opt/apps/Yggdrasil/csv/incoming:/data/incoming
+      - /opt/apps/Yggdrasil/csv/processed:/data/processed
+      - /opt/apps/Yggdrasil/csv/failed:/data/failed
+      - /opt/apps/Yggdrasil/csv/temp:/data/temp
     restart: unless-stopped
 
   web-app-nidhogg:
@@ -137,10 +137,6 @@ services:
 
 volumes:
   db_data:
-  csv_incoming:
-  csv_processed:
-  csv_failed:
-  csv_temp:
 networks:
   default:
     name: yggdrasil

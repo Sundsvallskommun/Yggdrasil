@@ -41,6 +41,7 @@ services:
       - csv_incoming:/data/incoming
       - csv_processed:/data/processed
       - csv_failed:/data/failed
+      - csv_temp:/data/temp
 
   api-service-webappusers:
     env_file: config/backend/mock-webappusers.env
@@ -64,3 +65,4 @@ volumes:
   csv_incoming:
   csv_processed:
   csv_failed:
+  csv_temp:

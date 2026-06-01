@@ -4,16 +4,16 @@ Yggdrasil deploys all microservices and databases for the crisis communication s
 
 ## Services & Ports
 
-| Service | Port | Purpose                                         |
-|---|---|-------------------------------------------------|
-| web-app-nidhogg | 3000 | Crisis communication frontend                   |
-| api-service-notifier | 8082 (mock only) | Sends notifications via SMS and Teams           |
-| api-service-webappusers | internal | Manages web app users and authentication        |
-| api-service-sms-sender | internal | Sends SMS via Telia and Linkmobility            |
-| api-service-teams-sender | internal | Sends messages via Microsoft Teams              |
-| csv-filereader | internal | Imports organization and employee data from CSV |
-| MariaDB | internal | notifier, users and teamssender databases       |
-| WireMock (mock only) | 9090 | Mocks external SMS and Teams APIs               |
+| Service                  | Port             | Purpose                                         |
+|--------------------------|------------------|-------------------------------------------------|
+| web-app-nidhogg          | 3000             | Crisis communication frontend                   |
+| api-service-notifier     | 8082 (mock only) | Sends notifications via SMS and Teams           |
+| api-service-webappusers  | internal         | Manages web app users and authentication        |
+| api-service-sms-sender   | internal         | Sends SMS via Telia and Linkmobility            |
+| api-service-teams-sender | internal         | Sends messages via Microsoft Teams              |
+| csv-filereader           | internal         | Imports organization and employee data from CSV |
+| MariaDB                  | internal         | notifier, users and teamssender databases       |
+| WireMock (mock only)     | 9090             | Mocks external SMS and Teams APIs               |
 
 ## Requirements
 
@@ -107,7 +107,7 @@ docker compose down -v
 docker compose up -d
 ```
 
-`down -v` removes all containers, project networks, and the named volumes declared in `docker-compose.yml` (`db_data`, `csv_incoming`, `csv_processed`, `csv_failed`, `csv_temp`). Images stay cached and bind-mounted files under `config/` are untouched.
+`down -v` removes all containers, project networks, and the named volumes declared in `docker-compose.yml` (just `db_data`). The CSV import folders are bind-mounted under `/opt/apps/Yggdrasil/csv/` (`incoming`, `processed`, `failed`, `temp`), so `-v` does **not** touch them — clear them manually if needed. Images stay cached and bind-mounted files under `config/` are untouched.
 
 Optional extras:
 - `docker compose down -v --remove-orphans` — also clean up containers left behind by older compose variants.
