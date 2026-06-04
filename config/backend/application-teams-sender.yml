@@ -1,3 +1,7 @@
+# Mock/local-dev values, self-contained (no .env files). In production these are
+# overridden by the real application.yml supplied from the GitLab config repo.
+# NOTE: teams-sender is currently disabled in docker-compose.yml, and the
+# teams_sender_db schema is no longer created by db-init.sql.
 logging:
   level:
     root: INFO
@@ -9,23 +13,23 @@ spring:
   application:
     name: teamssender
   datasource:
-    url: ${ENV_DB_URL}
-    username: ${ENV_DB_USERNAME}
-    password: ${ENV_DB_PASSWORD}
+    url: jdbc:mariadb://db:3306/teams_sender_db
+    username: root
+    password: root
     driver-class-name: org.mariadb.jdbc.Driver
 azure:
   ad:
     2281:
-      user: ${AZURE_USER}
-      client-id: ${AZURE_CLIENT_ID}
-      tenant-id: ${AZURE_TENANT_ID}
-      redirect-uri: ${AZURE_REDIRECT_URI}
-      scopes: ${AZURE_SCOPES}
-      authority-url: ${AZURE_AUTHORITY_URL}
-      client-secret: ${AZURE_CLIENT_SECRET}
-      login-url: ${AZURE_LOGIN_URL}
+      user: mock-sender@testaccount.com
+      client-id: mock-client-id
+      tenant-id: mock-tenant-id
+      redirect-uri: http://localhost:3000/api/teamssender/callback
+      scopes: mock-scope
+      authority-url: http://wiremock:8080/mock-tenant-id
+      client-secret: mock-client-secret
+      login-url: http://localhost:9090/mock-tenant-id/oauth2/v2.0/authorize
 graph:
-  base-url: ${GRAPH_URL}
+  base-url: http://wiremock:8080
 openapi:
   name: ${spring.application.name}
   title: ${spring.application.name}

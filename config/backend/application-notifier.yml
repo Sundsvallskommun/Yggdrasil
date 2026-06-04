@@ -1,48 +1,104 @@
+#========================================
+# General settings
+#
+# Mock/local-dev values, self-contained (no .env files). In production these are
+# overridden by the real application.yml supplied from the GitLab config repo.
+#========================================
 logging:
   level:
     root: INFO
-
-server:
-  port: 8080
-
-spring:
-  application:
-    name: notifier
-  datasource:
-    username: ${ENV_DB_USERNAME}
-    password: ${ENV_DB_PASSWORD}
-    url: ${ENV_DB_URL}
-  flyway:
-    enabled: true
-  security:
-    oauth2:
-      client:
-        provider:
-          sms-sender:
-            token-uri: ${ENV_SMS_SENDER_TOKEN_URL}
-          teams-sender:
-            token-uri: ${ENV_TEAMS_SENDER_TOKEN_URL}
-        registration:
-          sms-sender:
-            client-id: ${ENV_SMS_SENDER_CLIENT_ID}
-            client-secret: ${ENV_SMS_SENDER_CLIENT_SECRET}
-            authorization-grant-type: client_credentials
-          teams-sender:
-            client-id: ${ENV_TEAMS_SENDER_CLIENT_ID}
-            client-secret: ${ENV_TEAMS_SENDER_CLIENT_SECRET}
-            authorization-grant-type: client_credentials
-
-integration:
-  sms-sender:
-    base-url: ${ENV_SMS_SENDER_BASE_URL}
-    sender: Sundsvall
-  teams-sender:
-    base-url: ${ENV_TEAMS_SENDER_BASE_URL}
-
-jwt:
-  secret: ${JWT_SECRET}
-
+    org.springframework.jdbc.core.JdbcTemplate: INFO
 openapi:
   name: ${spring.application.name}
   title: ${spring.application.name}
   version: '@project.version@'
+
+server:
+  port: ${SERVER_PORT:8080}
+
+spring:
+  application:
+    name: notifier
+  #----------------------------------------
+  # Single datasource for all modules (messaging JPA + csvimport JdbcTemplate)
+  #----------------------------------------
+  datasource:
+    url: jdbc:mariadb://db:3306/notifier
+    username: root
+    password: root
+    driver-class-name: org.mariadb.jdbc.Driver
+  jpa:
+    properties:
+      jakarta:
+        persistence:
+          schema-generation:
+            database:
+              action: validate
+  flyway:
+    enabled: true
+  jdbc:
+    template:
+      fetch-size: 1000
+
+#----------------------------------------
+# JWT (security module): issuance on login + validation on every /api/** request
+#----------------------------------------
+jwt:
+  secret: mockJwtSecretForLocalDevelopmentOnly1234567890
+  expiration: 86400000
+
+#----------------------------------------
+# Bootstrap admin (users module — DataInitializer)
+#----------------------------------------
+user:
+  credentials:
+    email: test@test.se
+    password: pass
+    phoneNumber: 0701740605
+    municipalityId: 2281
+
+#----------------------------------------
+# Downstream HTTP integrations
+#----------------------------------------
+integration:
+  sms-sender:
+    base-url: http://api-service-sms-sender:8080
+    sender: Sundsvall
+  teams-sender:
+    base-url: http://api-service-teams-sender:8080
+  # csvimport SFTP source
+  sftp:
+    username: mock
+    password: mock
+    remote-host: mock
+    connect-timeout: "PT15S"
+    session-timeout: "PT15S"
+
+#----------------------------------------
+# csvimport batch settings
+#----------------------------------------
+import:
+  enabled: true
+  # File locations
+  incoming-dir: /data/incoming
+  processed-dir: /data/processed
+  failed-dir: /data/failed
+  file-source-dir: /data/temp
+  # Expected file names
+  org-file-name: OrgExport.csv
+  emp-file-name: EmpExport.csv
+  # Batch size
+  employee-batch-size: 200
+  organization-batch-size: 200
+
+scheduler:
+  scheduled-org-import:
+    cron: "0 0 * * * *"
+    name: "org-import"
+    shedlock-lock-at-most-for: "PT2H"
+    maximum-execution-time: "PT2H"
+  scheduled-emp-import:
+    cron: "0 0 * * * *"
+    name: "emp-import"
+    shedlock-lock-at-most-for: "PT2H"
+    maximum-execution-time: "PT2H"

@@ -28,12 +28,7 @@ git clone git@github.com:Sundsvallskommun/Yggdrasil.git
 cd Yggdrasil
 ```
 
-Create the environment files with placeholder values:
-```bash
-for f in config/backend/.env-*.example; do cp "$f" "${f%.example}"; done
-```
-
-Then start the stack:
+Supply the production service configs (see [Configuration](#configuration)), then start the stack:
 ```bash
 docker compose up -d
 ```
@@ -41,12 +36,7 @@ docker compose up -d
 ### Mock (local development)
 Starts the full stack with WireMock replacing external SMS and Teams APIs. Includes mock CSV data with 12 employees and 5 organizations. Uses a separate database volume (`db_data_mock`) so production data is never affected.
 
-Copy the example env files (if not already done):
-```bash
-for f in config/backend/.env-*.example; do cp "$f" "${f%.example}"; done
-```
-
-Then start the stack:
+No setup needed — the committed service configs already contain mock values. Just start the stack:
 ```bash
 docker compose -f docker-compose.yml -f docker-compose.mock.yml up -d
 ```
@@ -63,21 +53,25 @@ docker compose -f docker-compose.yml -f docker-compose.mock.yml down -v
 
 ## Configuration
 
-### Production
-Fill in the required values in the created environment files:
+Each backend service reads a single mounted `application.yml`. The files checked in here
+contain **mock values** for local/mock runs and require no setup:
 ```
-config/backend/.env-notifier
-config/backend/.env-smssender
-config/backend/.env-teams-sender
+config/backend/application-notifier.yml
+config/backend/application-smssender.yml
+config/backend/application-teams-sender.yml
 ```
 
-### Mock
-Mock environment files are included in the repo and require no configuration:
-```
-config/backend/mock-notifier.env
-config/backend/mock-smssender.env
-config/backend/mock-teams-sender.env
-```
+### Production
+The committed files hold mock values only. For production, replace each
+`config/backend/application-*.yml` with the real config (holding live secrets) from the
+GitLab config repo before `docker compose up -d` — e.g. by checking the GitLab files out
+over `config/backend/` on the deploy host, or bind-mounting them via
+`docker-compose.override.yml`.
+
+### web-app-nidhogg
+nidhogg is a Node/Prisma app and can't read an `application.yml`, so it keeps its own
+`config/secret.env` (gitignored) holding `DB_PASSWORD` and `DATABASE_URL`. This is the only
+`.env` file in the repo. Point at an alternate file with `SECRETS_FILE=/path/to/secrets.env`.
 
 ## WireMock Tests
 

@@ -1,3 +1,5 @@
+# Mock/local-dev values, self-contained (no .env files). In production these are
+# overridden by the real application.yml supplied from the GitLab config repo.
 logging:
   level:
     root: INFO
@@ -13,24 +15,24 @@ scheduler:
 
 provider:
   telia:
-    base-url: ${TELIA_BASE_URL}
+    base-url: http://wiremock:8080
     enabled: true
     priority: 1
     flash-capable: true
     oauth2:
-      token-url: ${TELIA_TOKEN_URL}
-      client-id: ${TELIA_CLIENT_ID}
-      client-secret: ${TELIA_CLIENT_SECRET}
+      token-url: http://wiremock:8080/token
+      client-id: mock-client-id
+      client-secret: mock-client-secret
   linkmobility:
-    base-url: ${LINKMOBILITY_BASE_URL}
+    base-url: http://wiremock:8080
     enabled: true
     priority: 2
     flash-capable: true
-    platform-id: ${LINKMOBILITY_PLATFORM_ID}
-    platform-partner-id: ${LINKMOBILITY_PLATFORM_PARTNER_ID}
+    platform-id: mock-platform-id
+    platform-partner-id: mock-partner-id
     basicauth:
-      username: ${LINKMOBILITY_USERNAME}
-      password: ${LINKMOBILITY_PASSWORD}
+      username: mock-username
+      password: mock-password
 
 openapi:
   name: api-service-sms-sender

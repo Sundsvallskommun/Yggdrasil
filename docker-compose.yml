@@ -27,7 +27,6 @@ services:
 #        condition: service_started
     environment:
       SPRING_CONFIG_ADDITIONAL_LOCATION: file:/app/config/application.yml
-    env_file: config/backend/.env-notifier
     volumes:
       - ./config/backend/application-notifier.yml:/app/config/application.yml
       # CSV import drop folders (csvimport module)
@@ -47,7 +46,6 @@ services:
     image: ghcr.io/sundsvallskommun/api-service-sms-sender:2.0
     environment:
       SPRING_CONFIG_ADDITIONAL_LOCATION: file:/app/config/application.yml
-    env_file: config/backend/.env-smssender
     volumes:
       - ./config/backend/application-smssender.yml:/app/config/application.yml
     restart: unless-stopped

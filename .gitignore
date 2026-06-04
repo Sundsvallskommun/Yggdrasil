@@ -1,8 +1,5 @@
 .idea/
 *.iml
-config/backend/.env-notifier
-config/backend/.env-smssender
-config/backend/.env-teams-sender
 config/secret.env
 docker-compose.override.yml
 IMPROVEMENTS.md
