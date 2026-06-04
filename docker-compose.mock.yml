@@ -14,9 +14,19 @@ services:
     depends_on:
       wiremock:
         condition: service_started
+    environment:
+      SPRING_PROFILES_ACTIVE: mock
     env_file: config/backend/mock-notifier.env
     ports:
       - "8080:8080"
+    volumes:
+      - ./config/backend/application-notifier.yml:/app/config/application.yml
+      - ./config/mock-data/OrgExport.csv:/data/temp/OrgExport.csv
+      - ./config/mock-data/EmpExport.csv:/data/temp/EmpExport.csv
+      - csv_incoming:/data/incoming
+      - csv_processed:/data/processed
+      - csv_failed:/data/failed
+      - csv_temp:/data/temp
 
   api-service-sms-sender:
     depends_on:
@@ -29,22 +39,6 @@ services:
 #      SPRING_PROFILES_ACTIVE: mock
 #      GRAPH_BASE_URL: http://wiremock:8080
 #    env_file: config/backend/mock-teams-sender.env
-
-  csv-filereader:
-    environment:
-      SPRING_PROFILES_ACTIVE: mock
-    env_file: config/backend/mock-csv-filereader.env
-    volumes:
-      - ./config/backend/application-csv-filereader.yml:/app/config/application.yml
-      - ./config/mock-data/OrgExport.csv:/data/temp/OrgExport.csv
-      - ./config/mock-data/EmpExport.csv:/data/temp/EmpExport.csv
-      - csv_incoming:/data/incoming
-      - csv_processed:/data/processed
-      - csv_failed:/data/failed
-      - csv_temp:/data/temp
-
-  api-service-webappusers:
-    env_file: config/backend/mock-webappusers.env
 
   web-app-nidhogg:
     depends_on:

@@ -15,8 +15,9 @@ services:
       - db_data:/var/lib/mysql
     restart: unless-stopped
 
+  # Merged service: messaging + users + CSV import (formerly api-service-webappusers + csv-filereader)
   api-service-notifier:
-    image: ghcr.io/sundsvallskommun/api-service-notifier:1.0
+    image: ghcr.io/sundsvallskommun/api-service-notifier:2.0
     depends_on:
       db:
         condition: service_healthy
@@ -29,24 +30,11 @@ services:
     env_file: config/backend/.env-notifier
     volumes:
       - ./config/backend/application-notifier.yml:/app/config/application.yml
-    healthcheck:
-      test: ["CMD", "bash", "-c", "echo > /dev/tcp/localhost/8080"]
-      interval: 10s
-      timeout: 5s
-      retries: 12
-      start_period: 30s
-    restart: unless-stopped
-
-  api-service-webappusers:
-    image: ghcr.io/sundsvallskommun/api-service-webapp-users:1.0
-    depends_on:
-      db:
-        condition: service_healthy
-    environment:
-      SPRING_CONFIG_ADDITIONAL_LOCATION: file:/app/config/application.yml
-    env_file: config/backend/.env-webappusers
-    volumes:
-      - ./config/backend/application-webappusers.yml:/app/config/application.yml
+      # CSV import drop folders (csvimport module)
+      - /opt/apps/Yggdrasil/csv/incoming:/data/incoming
+      - /opt/apps/Yggdrasil/csv/processed:/data/processed
+      - /opt/apps/Yggdrasil/csv/failed:/data/failed
+      - /opt/apps/Yggdrasil/csv/temp:/data/temp
     healthcheck:
       test: ["CMD", "bash", "-c", "echo > /dev/tcp/localhost/8080"]
       interval: 10s
@@ -64,34 +52,6 @@ services:
       - ./config/backend/application-smssender.yml:/app/config/application.yml
     restart: unless-stopped
 
-# TODO: Reenable if/when teams-sender is functional
-#  api-service-teams-sender:
-#    image: ghcr.io/sundsvallskommun/api-service-teams-sender:latest
-#    environment:
-#      SPRING_CONFIG_ADDITIONAL_LOCATION: file:/app/config/application.yml
-#    env_file: config/backend/.env-teams-sender
-#    volumes:
-#      - ./config/backend/application-teams-sender.yml:/app/config/application.yml
-#    restart: unless-stopped
-
-  csv-filereader:
-    image: ghcr.io/sundsvallskommun/api-service-csv-filereader:1.0
-    depends_on:
-      db:
-        condition: service_healthy
-      api-service-notifier:
-        condition: service_healthy
-    environment:
-      SPRING_CONFIG_ADDITIONAL_LOCATION: file:/app/config/application.yml
-    env_file: config/backend/.env-csv-filereader
-    volumes:
-      - ./config/backend/application-csv-filereader.yml:/app/config/application.yml
-      - /opt/apps/Yggdrasil/csv/incoming:/data/incoming
-      - /opt/apps/Yggdrasil/csv/processed:/data/processed
-      - /opt/apps/Yggdrasil/csv/failed:/data/failed
-      - /opt/apps/Yggdrasil/csv/temp:/data/temp
-    restart: unless-stopped
-
   web-app-nidhogg:
     image: ghcr.io/sundsvallskommun/web-app-nidhogg:0.2.0
     # Workaround: image is published amd64-only; emulated on arm64 hosts.
@@ -101,10 +61,9 @@ services:
         condition: service_healthy
       api-service-notifier:
         condition: service_healthy
-      api-service-webappusers:
-        condition: service_healthy
-#      api-service-teams-sender:
-#        condition: service_started
+    environment:
+      # User admin + auth are now served by the merged notifier (was api-service-webappusers)
+      API_PROXY_TARGET_USERS: http://api-service-notifier:8080
     env_file:
       - ${SECRETS_FILE:-config/secret.env}
     mem_limit: 1g

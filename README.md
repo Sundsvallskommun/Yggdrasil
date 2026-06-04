@@ -4,16 +4,17 @@ Yggdrasil deploys all microservices and databases for the crisis communication s
 
 ## Services & Ports
 
-| Service                  | Port             | Purpose                                         |
-|--------------------------|------------------|-------------------------------------------------|
-| web-app-nidhogg          | 3000             | Crisis communication frontend                   |
-| api-service-notifier     | 8082 (mock only) | Sends notifications via SMS and Teams           |
-| api-service-webappusers  | internal         | Manages web app users and authentication        |
-| api-service-sms-sender   | internal         | Sends SMS via Telia and Linkmobility            |
-| api-service-teams-sender | internal         | Sends messages via Microsoft Teams              |
-| csv-filereader           | internal         | Imports organization and employee data from CSV |
-| MariaDB                  | internal         | notifier, users and teamssender databases       |
-| WireMock (mock only)     | 9090             | Mocks external SMS and Teams APIs               |
+| Service                  | Port             | Purpose                                                              |
+|--------------------------|------------------|---------------------------------------------------------------------|
+| web-app-nidhogg          | 3000             | Crisis communication frontend                                       |
+| api-service-notifier     | 8080 (mock only) | Notifications (SMS/Teams) **+** user auth/admin **+** CSV directory import |
+| api-service-sms-sender   | internal         | Sends SMS via Telia and Linkmobility                                |
+| api-service-teams-sender | internal         | Sends messages via Microsoft Teams (currently disabled)             |
+| MariaDB                  | internal         | `notifier` database (single schema)                                 |
+| WireMock (mock only)     | 9090             | Mocks external SMS and Teams APIs                                   |
+
+> **Note:** `api-service-notifier` is now a single deployable that absorbs the former
+> `api-service-webappusers` (user auth/admin) and `csv-filereader` (CSV import) services.
 
 ## Requirements
 
@@ -66,20 +67,16 @@ docker compose -f docker-compose.yml -f docker-compose.mock.yml down -v
 Fill in the required values in the created environment files:
 ```
 config/backend/.env-notifier
-config/backend/.env-webappusers
 config/backend/.env-smssender
 config/backend/.env-teams-sender
-config/backend/.env-csv-filereader
 ```
 
 ### Mock
 Mock environment files are included in the repo and require no configuration:
 ```
 config/backend/mock-notifier.env
-config/backend/mock-webappusers.env
 config/backend/mock-smssender.env
 config/backend/mock-teams-sender.env
-config/backend/mock-csv-filereader.env
 ```
 
 ## WireMock Tests
