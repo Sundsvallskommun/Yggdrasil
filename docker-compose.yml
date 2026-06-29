@@ -46,6 +46,7 @@ services:
           # nidhogg image (standalone Next.js) has the old proxy targets baked in
           # at build time; alias the merged-away hostnames to this container.
           - api-service-webappusers
+          - api-service-teams-sender
     restart: unless-stopped
 
   api-service-sms-sender:
@@ -57,7 +58,7 @@ services:
     restart: unless-stopped
 
   api-service-teams-sender:
-    image: ghcr.io/sundsvallskommun/api-service-teams-sender:latest
+    image: ghcr.io/sundsvallskommun/api-service-teams-sender:1.0
     depends_on:
       db:
         condition: service_healthy
