@@ -23,8 +23,8 @@ services:
         condition: service_healthy
       api-service-sms-sender:
         condition: service_started
-#      api-service-teams-sender:
-#        condition: service_started
+      api-service-teams-sender:
+        condition: service_started
     environment:
       SPRING_CONFIG_ADDITIONAL_LOCATION: file:/app/config/application.yml
     volumes:
@@ -40,6 +40,12 @@ services:
       timeout: 5s
       retries: 12
       start_period: 30s
+    networks:
+      default:
+        aliases:
+          # nidhogg image (standalone Next.js) has the old proxy targets baked in
+          # at build time; alias the merged-away hostnames to this container.
+          - api-service-webappusers
     restart: unless-stopped
 
   api-service-sms-sender:
@@ -48,6 +54,17 @@ services:
       SPRING_CONFIG_ADDITIONAL_LOCATION: file:/app/config/application.yml
     volumes:
       - ./config/backend/application-smssender.yml:/app/config/application.yml
+    restart: unless-stopped
+
+  api-service-teams-sender:
+    image: ghcr.io/sundsvallskommun/api-service-teams-sender:latest
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      SPRING_CONFIG_ADDITIONAL_LOCATION: file:/app/config/application.yml
+    volumes:
+      - ./config/backend/application-teams-sender.yml:/app/config/application.yml
     restart: unless-stopped
 
   web-app-nidhogg:
@@ -59,9 +76,9 @@ services:
         condition: service_healthy
       api-service-notifier:
         condition: service_healthy
-    environment:
-      # User admin + auth are now served by the merged notifier (was api-service-webappusers)
-      API_PROXY_TARGET_USERS: http://api-service-notifier:8080
+    # Note: API_PROXY_TARGET_* env vars have no effect at runtime — the Next.js
+    # standalone build bakes rewrite targets in at image build time. Routing to
+    # the merged notifier is handled via network aliases on api-service-notifier.
     env_file:
       - ${SECRETS_FILE:-config/secret.env}
     mem_limit: 1g
